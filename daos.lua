@@ -4,7 +4,7 @@ local openssl_pkey = require "openssl.pkey"
 
 local SCHEMA = {
   primary_key = {"id"},
-  table = "jwt_secrets",
+  table = "ctk_secrets",
   cache_key = { "key" },
   fields = {
     id = {type = "id", dao_insert_value = true},
@@ -33,4 +33,4 @@ local SCHEMA = {
   end,
 }
 
-return {jwt_secrets = SCHEMA}
+return {ctk_secrets = SCHEMA}

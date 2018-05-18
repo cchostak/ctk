@@ -61,8 +61,8 @@ function JwtHandler:new()
   JwtHandler.super.new(self, "ctk")
 end
 
-local function load_credential(jwt_secret_key)
-  local rows, err = singletons.dao.jwt_secrets:find_all {key = jwt_secret_key}
+local function load_credential(ctk_secret_key)
+  local rows, err = singletons.dao.ctk_secrets:find_all {key = ctk_secret_key}
   if err then
     return nil, err
   end
@@ -80,13 +80,13 @@ local function load_consumer(consumer_id, anonymous)
   return result
 end
 
-local function set_consumer(consumer, jwt_secret, token)
+local function set_consumer(consumer, ctk_secret, token)
   ngx_set_header(constants.HEADERS.CONSUMER_ID, consumer.id)
   ngx_set_header(constants.HEADERS.CONSUMER_CUSTOM_ID, consumer.custom_id)
   ngx_set_header(constants.HEADERS.CONSUMER_USERNAME, consumer.username)
   ngx.ctx.authenticated_consumer = consumer
-  if jwt_secret then
-    ngx.ctx.authenticated_credential = jwt_secret
+  if ctk_secret then
+    ngx.ctx.authenticated_credential = ctk_secret
     ngx.ctx.authenticated_jwt_token = token
     ngx_set_header(constants.HEADERS.ANONYMOUS, nil) -- in case of auth plugins concatenation
   else
@@ -121,40 +121,40 @@ local function do_authentication(conf)
   local claims = jwt.claims
   local header = jwt.header
 
-  local jwt_secret_key = claims[conf.key_claim_name] or header[conf.key_claim_name]
-  if not jwt_secret_key then
+  local ctk_secret_key = claims[conf.key_claim_name] or header[conf.key_claim_name]
+  if not ctk_secret_key then
     return false, {status = 401, message = "No mandatory '" .. conf.key_claim_name .. "' in claims"}
   end
 
   -- Retrieve the secret
-  local jwt_secret_cache_key = singletons.dao.jwt_secrets:cache_key(jwt_secret_key)
-  local jwt_secret, err = singletons.cache:get(jwt_secret_cache_key, nil, load_credential, jwt_secret_key)
+  local ctk_secret_cache_key = singletons.dao.ctk_secrets:cache_key(ctk_secret_key)
+  local ctk_secret, err = singletons.cache:get(ctk_secret_cache_key, nil, load_credential, ctk_secret_key)
   if err then
     return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
   end
 
-  if not jwt_secret then
+  if not ctk_secret then
     return false, {status = 403, message = "No credentials found for given '" .. conf.key_claim_name .. "'"}
   end
 
-  local algorithm = jwt_secret.algorithm or "HS512"
+  local algorithm = ctk_secret.algorithm or "HS512"
 
   -- Verify "alg"
   if jwt.header.alg ~= algorithm then
     return false, {status = 403, message = "Invalid algorithm"}
   end
 
-  local jwt_secret_value = algorithm == "HS512" and jwt_secret.secret or jwt_secret.rsa_public_key
+  local ctk_secret_value = algorithm == "HS512" and ctk_secret.secret or ctk_secret.rsa_public_key
   if conf.secret_is_base64 then
-    jwt_secret_value = jwt:b64_decode(jwt_secret_value)
+    ctk_secret_value = jwt:b64_decode(ctk_secret_value)
   end
 
-  if not jwt_secret_value then
+  if not ctk_secret_value then
     return false, {status = 403, message = "Invalid key/secret"}
   end
 
   -- Now verify the JWT signature
-  if not jwt:verify_signature(jwt_secret_value) then
+  if not jwt:verify_signature(ctk_secret_value) then
     return false, {status = 403, message = "Invalid signature"}
   end
 
@@ -165,20 +165,20 @@ local function do_authentication(conf)
   end
 
   -- Retrieve the consumer
-  local consumer_cache_key = singletons.dao.consumers:cache_key(jwt_secret.consumer_id)
+  local consumer_cache_key = singletons.dao.consumers:cache_key(ctk_secret.consumer_id)
   local consumer, err      = singletons.cache:get(consumer_cache_key, nil,
                                                   load_consumer,
-                                                  jwt_secret.consumer_id, true)
+                                                  ctk_secret.consumer_id, true)
   if err then
     return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
   end
 
   -- However this should not happen
   if not consumer then
-    return false, {status = 403, message = string_format("Could not find consumer for '%s=%s'", conf.key_claim_name, jwt_secret_key)}
+    return false, {status = 403, message = string_format("Could not find consumer for '%s=%s'", conf.key_claim_name, ctk_secret_key)}
   end
 
-  set_consumer(consumer, jwt_secret, token)
+  set_consumer(consumer, ctk_secret, token)
 
   return true
 end
