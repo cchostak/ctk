@@ -128,8 +128,7 @@ local function do_authentication(conf)
 
   -- Retrieve the secret
   local jwt_secret_cache_key = singletons.dao.jwt_secrets:cache_key(jwt_secret_key)
-  local jwt_secret, err      = singletons.cache:get(jwt_secret_cache_key, nil,
-                                                    load_credential, jwt_secret_key)
+  local jwt_secret, err = singletons.cache:get(jwt_secret_cache_key, nil, load_credential, jwt_secret_key)
   if err then
     return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
   end

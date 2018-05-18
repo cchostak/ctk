@@ -2,7 +2,7 @@ local plugin_config_iterator = require("kong.dao.migrations.helpers").plugin_con
 
 return {
   {
-    name = "2015-06-09-jwt-auth",
+    name = "2015-06-09-ctk-auth",
     up = [[
       CREATE TABLE IF NOT EXISTS jwt_secrets(
         id uuid,
