@@ -22,7 +22,7 @@ return {
     ]]
   },
   {
-    name = "2016-03-07-jwt-alg",
+    name = "2016-03-07-ctk-alg",
     up = [[
       ALTER TABLE jwt_secrets ADD algorithm text;
       ALTER TABLE jwt_secrets ADD rsa_public_key text;

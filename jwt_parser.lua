@@ -5,7 +5,7 @@
 --
 -- @see https://github.com/x25/luajwt
 
-local json = require "cjson"
+local json = require "json"
 local utils = require "kong.tools.utils"
 local openssl_digest = require "openssl.digest"
 local openssl_hmac = require "openssl.hmac"
@@ -27,7 +27,7 @@ local decode_base64 = ngx.decode_base64
 local alg_sign = {
   ["HS256"] = function(data, key) return openssl_hmac.new(key, "sha256"):final(data) end,
   --["HS384"] = function(data, key) return openssl_hmac.new(key, "sha384"):final(data) end,
-  --["HS512"] = function(data, key) return openssl_hmac.new(key, "sha512"):final(data) end,
+  ["HS512"] = function(data, key) return openssl_hmac.new(key, "sha512"):final(data) end,
   ["RS256"] = function(data, key) return openssl_pkey.new(key):sign(openssl_digest.new("sha256"):update(data)) end,
   ["RS512"] = function(data, key) return openssl_pkey.new(key):sign(openssl_digest.new("sha512"):update(data)) end,
   ["ES256"] = function(data, key)
