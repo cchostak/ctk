@@ -28,11 +28,11 @@ local alg_sign = {
   ["HS256"] = function(data, key) return openssl_hmac.new(key, "sha256"):final(data) end,
   --["HS384"] = function(data, key) return openssl_hmac.new(key, "sha384"):final(data) end,
   ["HS512"] = function(data, key) return openssl_hmac.new(key, "sha512"):final(data) end,
-  ["RS256"] = function(data, key) return openssl_pkey.new(key):sign(openssl_digest.new("sha256"):update(data)) end,
-  ["RS512"] = function(data, key) return openssl_pkey.new(key):sign(openssl_digest.new("sha512"):update(data)) end,
-  ["ES256"] = function(data, key)
+  --["RS256"] = function(data, key) return openssl_pkey.new(key):sign(openssl_digest.new("sha256"):update(data)) end,
+  --["RS512"] = function(data, key) return openssl_pkey.new(key):sign(openssl_digest.new("sha512"):update(data)) end,
+  --["ES256"] = function(data, key)
     local pkeyPrivate = openssl_pkey.new(key)
-    local signature = pkeyPrivate:sign(openssl_digest.new("sha256"):update(data))
+    local signature = pkeyPrivate:sign(openssl_digest.new("sha512"):update(data))
 
     local derSequence = asn_sequence.parse_simple_sequence(signature)
     local r = asn_sequence.unsign_integer(derSequence[1], 32)
@@ -47,11 +47,11 @@ local alg_sign = {
 local alg_verify = {
   ["HS256"] = function(data, signature, key) return signature == alg_sign["HS256"](data, key) end,
   --["HS384"] = function(data, signature, key) return signature == alg_sign["HS384"](data, key) end,
-  --["HS512"] = function(data, signature, key) return signature == alg_sign["HS512"](data, key) end,
-  ["RS256"] = function(data, signature, key)
+  ["HS512"] = function(data, signature, key) return signature == alg_sign["HS512"](data, key) end,
+  --["RS256"] = function(data, signature, key)
     local pkey_ok, pkey = pcall(openssl_pkey.new, key)
     assert(pkey_ok, "Consumer Public Key is Invalid")
-    local digest = openssl_digest.new('sha256'):update(data)
+    local digest = openssl_digest.new('sha512'):update(data)
     return pkey:verify(signature, digest)
   end,
   ["RS512"] = function(data, signature, key)
@@ -176,7 +176,7 @@ local function encode_token(data, key, alg, header)
     error("Argument #4 must be a table", 2)
   end
 
-  alg = alg or "HS256"
+  alg = alg or "HS512"
 
   if not alg_sign[alg] then
     error("Algorithm not supported", 2)
