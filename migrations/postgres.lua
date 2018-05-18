@@ -42,7 +42,7 @@ return {
     ]]
   },
   {
-    name = "2017-05-22-jwt_secret_not_unique",
+    name = "2017-05-22-ctk_secret_not_unique",
     up = [[
       ALTER TABLE jwt_secrets DROP CONSTRAINT IF EXISTS jwt_secrets_secret_key;
     ]],
@@ -51,7 +51,7 @@ return {
     ]],
   },
   {
-    name = "2017-07-31-120200_jwt-auth_preflight_default",
+    name = "2017-07-31-120200_ctk-auth_preflight_default",
     up = function(_, _, dao)
       for ok, config, update in plugin_config_iterator(dao, "jwt") do
         if not ok then
@@ -69,7 +69,7 @@ return {
     down = function(_, _, dao) end  -- not implemented
   },
   {
-    name = "2017-10-25-211200_jwt_cookie_names_default",
+    name = "2017-10-25-211200_ctk_cookie_names_default",
     up = function(_, _, dao)
       for ok, config, update in plugin_config_iterator(dao, "jwt") do
         if not ok then
