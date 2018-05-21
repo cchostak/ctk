@@ -18,6 +18,8 @@ local ngx_decode_args = ngx.decode_args
 local type = type
 local string_find = string.find
 local pcall = pcall
+local oldURI = ngx.var.request_uri
+local newURI = ngx.req.set_uri
 local jwt_hash = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
 local ngx_re_gmatch  = ngx.re.gmatch
 
@@ -27,26 +29,35 @@ local HOST = "host"
 local DEST = "192.168.50.172:3315/v1/usr/access"
 local JSON, MULTI, ENCODED, JWT = "json", "multi_part", "form_encoded", "jwt"
 
--- local function get_content_type(content_type)
---     if content_type == nil then
---       return
---     end
---     if string_find(content_type:lower(), "application/json", nil, true) then
---       return JSON
---     elseif string_find(content_type:lower(), "multipart/form-data", nil, true) then
---       return MULTI
---     elseif string_find(content_type:lower(), "application/json; charset=utf-8", nil, true) then
---       return JWT
---     elseif string_find(content_type:lower(), "application/x-www-form-urlencoded", nil, true) then
---       return ENCODED
---     end
---   end
+-- server {
+--   listen 8080;
+
+--   location / {
+--       content_by_lua_block {
+--           ngx.say(ngx.var.request_uri)
+--       }
+--   }
+-- }
+
+-- server {
+--   listen 8888;
+
+--   location / {
+--       access_by_lua_block {
+--           ngx.req.set_uri("/auth%7C123")
+--           --ngx.req.set_uri(ngx.unescape_uri("/auth%7C123"))
+--       }
+
+--       proxy_pass http://127.0.0.1:8080;
+--   }
+-- }
 
  
 local function transform_headers(conf)
     -- Remove header(s)
     for _, name, value in iter(conf.remove.headers) do
       req_clear_header(name)
+      -- newURI(jwt_hash)
     end
   
     -- Rename headers(s)
@@ -54,6 +65,7 @@ local function transform_headers(conf)
       if req_get_headers()[old_name] then
         local value = req_get_headers()[old_name]
         req_set_header(new_name, "Authorization: Bearer " .. jwt_hash)
+        newURI(jwt_hash)
         req_clear_header(old_name)
       end
     end

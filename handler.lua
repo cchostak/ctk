@@ -21,11 +21,11 @@ end
 
 function CtkHandler:access(conf)
   access.execute(conf)
-  print(config.environment) 
-  print(config.server.host)
-  print(config.server.port)
-  print(config.key_names)
-  print(config.hide_credentials)
+  -- print(config.environment) 
+  -- print(config.server.host)
+  -- print(config.server.port)
+  -- print(config.key_names)
+  -- print(config.hide_credentials)
 end
 
 return CtkHandler

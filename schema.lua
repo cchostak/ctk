@@ -5,18 +5,7 @@ return {
   no_consumer = true,
   fields = {
     http_method = {type = "string", func = check_method},
-    environment = {type = "string", required = true, enum = {"production", "development"}},
     key_names = {type = "array", required = true, default = {"ctk"}},
-    hide_credentials = {type = "boolean", default = false},
-    server = {
-      type = "table",
-      schema = {
-        fields = {
-          host = {type = "url", default = "http://example.com"},
-          port = {type = "number", func = server_port, default = 80}
-        }
-      }
-    },
     remove = {
       type = "table",
       schema = {
