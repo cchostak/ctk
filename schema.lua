@@ -5,6 +5,6 @@ return {
     method = { default = "POST", enum = { "POST", "PUT", "PATCH" } },
     run_on_preflight = {type = "boolean", default = true},
     uri_param_names = {type = "array", default = {"jwt"}},
-    content_type = { default = "application/json; charset=utf-8", enum = { "application/json; charset=utf-8" } }
+    content_type = { default = "application/json", enum = { "application/json" } }
   }
 }

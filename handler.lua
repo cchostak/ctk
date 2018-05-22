@@ -30,10 +30,10 @@ file:write("--- JUST EXTENDED THE BASE PLUGIN ---")
 
 
 function CtkHandler:new()
-CtkHandler.super.new(self, "ctk")
-file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
-io.input(file)
-file:write("--- INSTACIATED ITSELF ---")  
+  CtkHandler.super.new(self, "ctk")
+  file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
+  io.input(file)
+  file:write("--- INSTACIATED ITSELF ---")  
 end
 
 
@@ -75,8 +75,6 @@ local function retrieve_token(request, conf)
   end
 end
 
-
-
 local function do_authentication(self)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
@@ -85,6 +83,8 @@ local function do_authentication(self)
   if err then
     return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
   end
+
+  return true
 end
 
 local function append_uri(self)
@@ -92,15 +92,17 @@ local function append_uri(self)
   io.input(file)
   file:write("--- FUNCTION APPEND_URL ---")
   local uri = ngx.get_uri_args
-  ngx.req.set_uri(ngx.unescape_uri("/" .. m[1]))
+  ngx.req.set_uri(ngx.unescape_uri("/" .. token))
 end
 
-function CtkHandler:access()
+function CtkHandler:access(conf)
+  CtkHandler.super.access(self)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("--- STARTED THE ACCESS PART ---")
-  CtkHandler.super.access(self)
-  do_authentication(self)
+  local ok, err = do_authentication(conf)
+
+  --return ok
 end
 
 file:close()
