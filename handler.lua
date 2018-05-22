@@ -28,7 +28,7 @@ CtkHandler = BasePlugin:extend()
 file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
 
-local function retrieve_token(request, conf)
+local function retrieve_token(ngx.req, conf)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("-- Tried to read token in request")
@@ -79,7 +79,7 @@ function CtkHandler:new()
 file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
   CtkHandler.super.new(self, "ctk")
-file:write("-- Instanciated itself")  
+file:write("-- Instanciated itself", print(config.key_names), print(config.method))  
 end
 
 
@@ -142,7 +142,7 @@ function CtkHandler:access(conf)
   io.input(file)
   file:write("--Function: CtkHandler:access")
 
-  retrieve_token(nil)
+  retrieve_token(ngx.req)
 end
 
 file:close()
