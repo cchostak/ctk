@@ -24,11 +24,13 @@ function CtkHandler:new()
   file:write("--- INSTACIATED ITSELF ---")  
 end
 
-function CtkHandler:access(conf)
+function CtkHandler:rewrite(conf)
+--function CtkHandler:access(conf)
   CtkHandler.super.access(self)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("--- STARTED THE ACCESS PART ---")
+  do_authentication()
   access.execute(conf)
 end
 

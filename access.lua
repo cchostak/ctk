@@ -22,6 +22,8 @@ local cjson_encode = cjson.encode
 local ipairs = ipairs
 local request = ngx.request
 
+local _M = {}
+
 local function retrieve_token(request, conf)
     file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
     io.input(file)
@@ -90,4 +92,6 @@ local function retrieve_token(request, conf)
     local uri = ngx.get_uri_args
     ngx.req.set_uri(ngx.unescape_uri("/" .. token))
   end
+
+  return _M
   
