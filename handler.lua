@@ -25,11 +25,11 @@ HTTPS = "https"
 
 CtkHandler = BasePlugin:extend()
 
-file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
 
 local function retrieve_token(request, conf)
-  file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+  file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("-- Tried to read token in request")
     local uri_parameters = request.get_uri_args()
@@ -76,7 +76,7 @@ local function retrieve_token(request, conf)
 
 
 function CtkHandler:new()
-file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
   CtkHandler.super.new(self, "ctk")
 file:write("-- Instanciated itself")  
@@ -91,7 +91,7 @@ end
 -- @param `body`  Body of the message as a string (must be encoded according to the `content_type` parameter)
 -- @return raw http message
 local function generate_post_payload(method, content_type, parsed_url, body)
-file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
 file:write("--Function generate-post-payload")
   local url
@@ -119,7 +119,7 @@ end
 -- @param `url` host url
 -- @return `parsed_url` a table with host details like domain name, port, path etc
 local function parse_url(host_url)
-file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
 file:write("--Function generate-post-payload")
   local parsed_url = url.parse(host_url)
