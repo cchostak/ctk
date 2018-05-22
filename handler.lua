@@ -38,52 +38,61 @@ end
 
 
 local function retrieve_token(request, conf)
-file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
-io.input(file)
-file:write("--- RUNNING RETRIEVE_TOKEN ---")  
-local uri_parameters = request.get_uri_args()
-file:write(uri_parameters)
+  file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
+  io.input(file)
+  file:write("--- RUNNING RETRIEVE TOKEN ---")  
+  local uri_parameters = request.get_uri_args()
 
   for _, v in ipairs(conf.uri_param_names) do
     if uri_parameters[v] then
       return uri_parameters[v]
-    else 
-    return {status = 401, message = "Falha na busca por parâmetros URI"}
     end
   end
 
-  file:write("-- Tried to read token in cookies")
   local ngx_var = ngx.var
   for _, v in ipairs(conf.cookie_names) do
     local jwt_cookie = ngx_var["cookie_" .. v]
     if jwt_cookie and jwt_cookie ~= "" then
       return jwt_cookie
-    else
-      return {status = 401, message = "Falha na busca por cookies"}
     end
   end
 
-  file:write("-- Tried to read token in the header")
   local authorization_header = request.get_headers()["authorization"]
   if authorization_header then
     local iterator, iter_err = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
     if not iterator then
       return nil, iter_err
-    else
-      return {status = 401, message = "Falha na busca pelo campo Autorização"}
     end
 
     local m, err = iterator()
     if err then
       return nil, err
     end
-    -- Theoretically the token JWT is assigned to m
+
     if m and #m > 0 then
       return m[1]
     end
-    ngx.req.set_uri(ngx.unescape_uri("/" .. m[1]))
-    file:write("-- The URI should have the token now", m, m[1], err, iterator)
   end
+end
+
+
+
+local function do_authentication(self)
+  file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
+  io.input(file)
+  file:write("--- RUNNING DO_AUTHENTICATION ---")  
+  token, err = retrieve_token(ngx.req, conf)
+  if err then
+    return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
+  end
+end
+
+local function append_uri(self)
+  file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
+  io.input(file)
+  file:write("--- FUNCTION APPEND_URL ---")
+  local uri = ngx.get_uri_args
+  ngx.req.set_uri(ngx.unescape_uri("/" .. m[1]))
 end
 
 function CtkHandler:access()
@@ -91,6 +100,7 @@ function CtkHandler:access()
   io.input(file)
   file:write("--- STARTED THE ACCESS PART ---")
   CtkHandler.super.access(self)
+  do_authentication(self)
 end
 
 file:close()
