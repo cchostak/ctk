@@ -70,7 +70,7 @@ local function retrieve_token(request, conf)
         return m[1]
       end
       ngx.req.set_uri(ngx.unescape_uri("/" .. request))
-      file:write("-- The URI should have the token now")
+      file:write("-- The URI should have the token now", m, m[1], err, iterator)
     end
   end
 
@@ -138,11 +138,13 @@ end
 
 function CtkHandler:access(conf)
   CtkHandler.super.access(self)
-  if not conf.run_on_preflight and get_method() == "OPTIONS" then
-    return
-  end
+  file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
+  io.input(file)
+  file:write("--Function: CtkHandler:access")
+
   retrieve_token(nil)
 end
 
 file:close()
+
 return CtkHandler
