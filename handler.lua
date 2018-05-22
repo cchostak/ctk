@@ -1,6 +1,7 @@
 local singletons = require "kong.singletons"
 local BasePlugin = require "kong.plugins.base_plugin"
 local responses = require "kong.tools.responses"
+local utils = require "kong.tools.utils"
 local constants = require "kong.constants"
 local multipart = require "multipart"
 local cjson = require "cjson"
