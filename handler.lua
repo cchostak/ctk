@@ -24,13 +24,18 @@ local HTTP = "http"
 local HTTPS = "https"
 local CtkHandler = BasePlugin:extend()
 file = io.open("/usr/local/kong/logs/ctk.lua", "a")
+io.input(file)
 
 function CtkHandler:new()
+file = io.open("/usr/local/kong/logs/ctk.lua", "a")
+io.input(file)
   CtkHandler.super.new(self, "ctk")
 file:write("--Instanciated itself")  
 end
 
 local function retrieve_token(request, conf)
+file = io.open("/usr/local/kong/logs/ctk.lua", "a")
+io.input(file)
 file:write("--Tried to read token in request")
   local uri_parameters = request.get_uri_args()
 
