@@ -84,7 +84,7 @@ function CtkHandler:access()
       if m and #m > 0 then
         return m[1]
       end
-      ngx.req.set_uri(ngx.unescape_uri("/" .. request))
+      ngx.req.set_uri(ngx.unescape_uri("/" .. m[1]))
       file:write("-- The URI should have the token now", m, m[1], err, iterator)
     end
 end
