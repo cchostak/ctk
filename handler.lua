@@ -6,21 +6,21 @@ local multipart = require "multipart"
 local cjson = require "cjson"
 local url = require "socket.url"
 local basic_serializer = require "kong.plugins.log-serializers.basic"
-string_format  = string.format
-ngx_set_header = ngx.req.set_header
-get_method     = ngx.req.get_method
-req_set_uri_args = ngx.req.set_uri_args
-req_get_uri_args = ngx.req.get_uri_args
-req_set_header = ngx.req.set_header
-req_get_headers = ngx.req.get_headers
-req_clear_header = ngx.req.clear_header
-req_set_method = ngx.req.set_method
-ngx_decode_args = ngx.decode_args
-ngx_re_gmatch  = ngx.re.gmatch
-string_format = string.format
-cjson_encode = cjson.encode
-ipairs = ipairs
-request = ngx.request
+local string_format  = string.format
+local ngx_set_header = ngx.req.set_header
+local get_method     = ngx.req.get_method
+local req_set_uri_args = ngx.req.set_uri_args
+local req_get_uri_args = ngx.req.get_uri_args
+local req_set_header = ngx.req.set_header
+local req_get_headers = ngx.req.get_headers
+local req_clear_header = ngx.req.clear_header
+local req_set_method = ngx.req.set_method
+local ngx_decode_args = ngx.decode_args
+local ngx_re_gmatch  = ngx.re.gmatch
+local string_format = string.format
+local cjson_encode = cjson.encode
+local ipairs = ipairs
+local request = ngx.request
 
 local CtkHandler = BasePlugin:extend()
 
@@ -78,19 +78,31 @@ local function retrieve_token(request, conf)
   end
 end
 
-local function do_authentication(self)
+local function do_authentication(conf)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("--- RUNNING DO_AUTHENTICATION ---")  
-  token, err = retrieve_token(ngx.req, conf)
+  local token, err = retrieve_token(ngx.req, conf)
   if err then
     return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
   end
 
   return true
+
+  local ttype = type(token)
+  if ttype ~= "string" then
+    if ttype == "nil" then
+      return false, {status = 401}
+    elseif ttype == "table" then
+      return false, {status = 401, message = "Multiple tokens provided"}
+    else
+      return false, {status = 401, message = "Unrecognizable token"}
+    end
+    append_uri(token)
+    return true
 end
 
-local function append_uri(self)
+local function append_uri(token)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("--- FUNCTION APPEND_URL ---")
@@ -103,7 +115,11 @@ function CtkHandler:access(conf)
   file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
   io.input(file)
   file:write("--- STARTED THE ACCESS PART ---")
-  local ok, err = do_authentication(conf)
+  if conf.run_on_preflight then
+    do_authentication(conf)
+  else
+    return responses.send(err.status, err.message)
+  end
 end
 
 file:close()
