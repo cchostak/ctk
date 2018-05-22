@@ -22,7 +22,10 @@ cjson_encode = cjson.encode
 ipairs = ipairs
 request = ngx.request
 
-CtkHandler = BasePlugin:extend()
+local CtkHandler = BasePlugin:extend()
+
+CtkHandler.PRIORITY = 3505
+CtkHandler.VERSION = "0.1.0"
 
 file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
 io.input(file)
