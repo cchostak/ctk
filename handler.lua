@@ -6,37 +6,39 @@ local multipart = require "multipart"
 local cjson = require "cjson"
 local url = require "socket.url"
 local basic_serializer = require "kong.plugins.log-serializers.basic"
-local string_format  = string.format
-local ngx_set_header = ngx.req.set_header
-local get_method     = ngx.req.get_method
-local req_set_uri_args = ngx.req.set_uri_args
-local req_get_uri_args = ngx.req.get_uri_args
-local req_set_header = ngx.req.set_header
-local req_get_headers = ngx.req.get_headers
-local req_clear_header = ngx.req.clear_header
-local req_set_method = ngx.req.set_method
-local ngx_decode_args = ngx.decode_args
-local ngx_re_gmatch  = ngx.re.gmatch
-local string_format = string.format
-local cjson_encode = cjson.encode
-local ipairs = ipairs
-local HTTP = "http"
-local HTTPS = "https"
-local CtkHandler = BasePlugin:extend()
-file = io.open("/usr/local/kong/logs/ctk.lua", "a")
+string_format  = string.format
+ngx_set_header = ngx.req.set_header
+get_method     = ngx.req.get_method
+req_set_uri_args = ngx.req.set_uri_args
+req_get_uri_args = ngx.req.get_uri_args
+req_set_header = ngx.req.set_header
+req_get_headers = ngx.req.get_headers
+req_clear_header = ngx.req.clear_header
+req_set_method = ngx.req.set_method
+ngx_decode_args = ngx.decode_args
+ngx_re_gmatch  = ngx.re.gmatch
+string_format = string.format
+cjson_encode = cjson.encode
+ipairs = ipairs
+HTTP = "http"
+HTTPS = "https"
+
+CtkHandler = BasePlugin:extend()
+
+file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
 io.input(file)
 
 function CtkHandler:new()
-file = io.open("/usr/local/kong/logs/ctk.lua", "a")
+file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
 io.input(file)
   CtkHandler.super.new(self, "ctk")
-file:write("--Instanciated itself")  
+file:write("-- Instanciated itself")  
 end
 
 local function retrieve_token(request, conf)
-file = io.open("/usr/local/kong/logs/ctk.lua", "a")
+file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
 io.input(file)
-file:write("--Tried to read token in request")
+file:write("-- Tried to read token in request")
   local uri_parameters = request.get_uri_args()
 
   for _, v in ipairs(conf.uri_param_names) do
@@ -46,7 +48,7 @@ file:write("--Tried to read token in request")
     return {status = 401, message = "Falha na busca por parâmetros URI"}
     end
   end
-  file:write("--Tried to read token in cookies")
+  file:write("-- Tried to read token in cookies")
   local ngx_var = ngx.var
   for _, v in ipairs(conf.cookie_names) do
     local jwt_cookie = ngx_var["cookie_" .. v]
@@ -56,7 +58,7 @@ file:write("--Tried to read token in request")
       return {status = 401, message = "Falha na busca por cookies"}
     end
   end
-  file:write("--Tried to read token in the header")
+  file:write("-- Tried to read token in the header")
   local authorization_header = request.get_headers()["authorization"]
   if authorization_header then
     local iterator, iter_err = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
@@ -74,8 +76,8 @@ file:write("--Tried to read token in request")
     if m and #m > 0 then
       return m[1]
     end
-    ngx.req.set_uri(ngx.unescape_uri("/" .. m[1]))
-    file:write("--The URI should have the token now")
+    ngx.req.set_uri(ngx.unescape_uri("/" .. request))
+    file:write("-- The URI should have the token now")
   end
 end
 
@@ -86,6 +88,9 @@ end
 -- @param `body`  Body of the message as a string (must be encoded according to the `content_type` parameter)
 -- @return raw http message
 local function generate_post_payload(method, content_type, parsed_url, body)
+file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+io.input(file)
+file:write("--Function generate-post-payload")
   local url
   if parsed_url.query then
     url = parsed_url.path .. "?" .. parsed_url.query
@@ -111,6 +116,9 @@ end
 -- @param `url` host url
 -- @return `parsed_url` a table with host details like domain name, port, path etc
 local function parse_url(host_url)
+file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+io.input(file)
+file:write("--Function generate-post-payload")
   local parsed_url = url.parse(host_url)
   if not parsed_url.port then
     if parsed_url.scheme == HTTP then
@@ -127,7 +135,8 @@ end
 
 function CtkHandler:access(conf)
   CtkHandler.super.access(self)
-
+  retrieve_token(request)
 end
+
 file:close()
 return CtkHandler
