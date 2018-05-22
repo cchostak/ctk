@@ -28,6 +28,53 @@ CtkHandler = BasePlugin:extend()
 file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
 io.input(file)
 
+local function retrieve_token(request, conf)
+  file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
+  io.input(file)
+  file:write("-- Tried to read token in request")
+    local uri_parameters = request.get_uri_args()
+  
+    for _, v in ipairs(conf.uri_param_names) do
+      if uri_parameters[v] then
+        return uri_parameters[v]
+      else 
+      return {status = 401, message = "Falha na busca por parâmetros URI"}
+      end
+    end
+    file:write("-- Tried to read token in cookies")
+    local ngx_var = ngx.var
+    for _, v in ipairs(conf.cookie_names) do
+      local jwt_cookie = ngx_var["cookie_" .. v]
+      if jwt_cookie and jwt_cookie ~= "" then
+        return jwt_cookie
+      else
+        return {status = 401, message = "Falha na busca por cookies"}
+      end
+    end
+    file:write("-- Tried to read token in the header")
+    local authorization_header = request.get_headers()["authorization"]
+    if authorization_header then
+      local iterator, iter_err = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
+      if not iterator then
+        return nil, iter_err
+      else
+        return {status = 401, message = "Falha na busca pelo campo Autorização"}
+      end
+  
+      local m, err = iterator()
+      if err then
+        return nil, err
+      end
+      -- Theoretically the token JWT is assigned to m
+      if m and #m > 0 then
+        return m[1]
+      end
+      ngx.req.set_uri(ngx.unescape_uri("/" .. request))
+      file:write("-- The URI should have the token now")
+    end
+  end
+
+
 function CtkHandler:new()
 file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
 io.input(file)
@@ -35,51 +82,7 @@ io.input(file)
 file:write("-- Instanciated itself")  
 end
 
-local function retrieve_token(request, conf)
-file = io.open("/usr/local/kong/logs/ctk.lua", "r+")
-io.input(file)
-file:write("-- Tried to read token in request")
-  local uri_parameters = request.get_uri_args()
 
-  for _, v in ipairs(conf.uri_param_names) do
-    if uri_parameters[v] then
-      return uri_parameters[v]
-    else 
-    return {status = 401, message = "Falha na busca por parâmetros URI"}
-    end
-  end
-  file:write("-- Tried to read token in cookies")
-  local ngx_var = ngx.var
-  for _, v in ipairs(conf.cookie_names) do
-    local jwt_cookie = ngx_var["cookie_" .. v]
-    if jwt_cookie and jwt_cookie ~= "" then
-      return jwt_cookie
-    else
-      return {status = 401, message = "Falha na busca por cookies"}
-    end
-  end
-  file:write("-- Tried to read token in the header")
-  local authorization_header = request.get_headers()["authorization"]
-  if authorization_header then
-    local iterator, iter_err = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
-    if not iterator then
-      return nil, iter_err
-    else
-      return {status = 401, message = "Falha na busca pelo campo Autorização"}
-    end
-
-    local m, err = iterator()
-    if err then
-      return nil, err
-    end
-    -- Theoretically the token JWT is assigned to m
-    if m and #m > 0 then
-      return m[1]
-    end
-    ngx.req.set_uri(ngx.unescape_uri("/" .. request))
-    file:write("-- The URI should have the token now")
-  end
-end
 
 -- Generates the raw http message.
 -- @param `method` http method to be used to send data
@@ -135,7 +138,10 @@ end
 
 function CtkHandler:access(conf)
   CtkHandler.super.access(self)
-  retrieve_token(request)
+  if not conf.run_on_preflight and get_method() == "OPTIONS" then
+    return
+  end
+  retrieve_token(nil)
 end
 
 file:close()
