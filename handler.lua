@@ -104,8 +104,6 @@ function CtkHandler:access(conf)
   io.input(file)
   file:write("--- STARTED THE ACCESS PART ---")
   local ok, err = do_authentication(conf)
-
-  --return ok
 end
 
 file:close()
