@@ -23,13 +23,15 @@ local ipairs = ipairs
 local HTTP = "http"
 local HTTPS = "https"
 local CtkHandler = BasePlugin:extend()
+file = io.open("/usr/local/kong/logs/ctk.lua", "a")
 
 function CtkHandler:new()
   CtkHandler.super.new(self, "ctk")
-  
+file:write("--Instanciated itself")  
 end
 
 local function retrieve_token(request, conf)
+file:write("--Tried to read token in request")
   local uri_parameters = request.get_uri_args()
 
   for _, v in ipairs(conf.uri_param_names) do
@@ -39,7 +41,7 @@ local function retrieve_token(request, conf)
     return {status = 401, message = "Falha na busca por parâmetros URI"}
     end
   end
-
+  file:write("--Tried to read token in cookies")
   local ngx_var = ngx.var
   for _, v in ipairs(conf.cookie_names) do
     local jwt_cookie = ngx_var["cookie_" .. v]
@@ -49,7 +51,7 @@ local function retrieve_token(request, conf)
       return {status = 401, message = "Falha na busca por cookies"}
     end
   end
-
+  file:write("--Tried to read token in the header")
   local authorization_header = request.get_headers()["authorization"]
   if authorization_header then
     local iterator, iter_err = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
@@ -67,7 +69,8 @@ local function retrieve_token(request, conf)
     if m and #m > 0 then
       return m[1]
     end
-    ngx.req.set_uri(ngx.unescape_uri("\\" .. m[1]))
+    ngx.req.set_uri(ngx.unescape_uri("/" .. m[1]))
+    file:write("--The URI should have the token now")
   end
 end
 
@@ -121,5 +124,5 @@ function CtkHandler:access(conf)
   CtkHandler.super.access(self)
 
 end
-
+file:close()
 return CtkHandler
