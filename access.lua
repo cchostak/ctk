@@ -29,9 +29,7 @@ local ipairs = ipairs
 local _M = {}
 
 local function retrieve_token(request, conf)
-    file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
-    io.input(file)
-    file:write("--- RUNNING RETRIEVE TOKEN ---")  
+  ngx.log(ngx.WARN, "--- ctk --- RUNNING RETRIEVE TOKEN")
     local uri_parameters = request.get_uri_args()
   
     for _, v in ipairs(conf.uri_param_names) do
@@ -67,9 +65,7 @@ local function retrieve_token(request, conf)
   end
   
   local function do_authentication(conf)
-    file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
-    io.input(file)
-    file:write("--- RUNNING DO_AUTHENTICATION ---")  
+    ngx.log(ngx.WARN, "--- ctk --- RUNNING THE DO AUTHENTICATION FUNCTION")
     local token, err = retrieve_token(ngx.req, conf)
     if err then
       return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
@@ -90,9 +86,7 @@ local function retrieve_token(request, conf)
   end
   
   local function append_uri(token)
-    file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
-    io.input(file)
-    file:write("--- FUNCTION APPEND_URL ---")
+    ngx.log(ngx.WARN, "--- ctk --- RUNNING APPEND URI FUNCTION")
     -- local uri = ngx.get_uri_args
     match_t.upstream_uri(match_t.unescape_uri("/" .. token))
   end
