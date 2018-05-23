@@ -40,71 +40,16 @@ function CtkHandler:access(conf)
   CtkHandler.super.access(self)
   ngx.log(ngx.WARN, "--- ctk --- STARTED THE ACCESS PROCESS")
 
-  retrieve_token(ngx.req, conf)
-  ngx.log(ngx.WARN, ngx.req)
-  local function retrieve_token(request, conf)
-    ngx.log(ngx.WARN, "--- ctk --- RUNNING RETRIEVE TOKEN")
-      local uri_parameters = request.get_uri_args()
-    
-      for _, v in ipairs(conf.uri_param_names) do
-        if uri_parameters[v] then
-          return uri_parameters[v]
-        end
-      end
-    
-      local ngx_var = ngx.var
-      for _, v in ipairs(conf.cookie_names) do
-        local jwt_cookie = ngx_var["cookie_" .. v]
-        if jwt_cookie and jwt_cookie ~= "" then
-          return jwt_cookie
-        end
-      end
-    
-      local authorization_header = request.get_headers()["authorization"]
-      if authorization_header then
-        local iterator, iter_err = ngx_re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
-        if not iterator then
-          return nil, iter_err
-        end
-    
-        local m, err = iterator()
-        if err then
-          return nil, err
-        end
-    
-        if m and #m > 0 then
-          return m[1]
-        end
-      end
-    end
-    
-    local function do_authentication(conf)
-      ngx.log(ngx.WARN, "--- ctk --- RUNNING THE DO AUTHENTICATION FUNCTION")
-      local token, err = retrieve_token(ngx.req, conf)
-      if err then
-        return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
-      end
-    
-      local ttype = type(token)
-      if ttype ~= "string" then
-        if ttype == "nil" then
-          return false, {status = 401}
-        elseif ttype == "table" then
-          return false, {status = 401, message = "Multiple tokens provided"}
-        else
-          return false, {status = 401, message = "Unrecognizable token"}
-        end
-        append_uri(token)
-        return true
-      end
-    end
-    
-    local function append_uri(token)
-      ngx.log(ngx.WARN, "--- ctk --- RUNNING APPEND URI FUNCTION")
-      -- local uri = ngx.get_uri_args
-      match_t.upstream_uri(match_t.unescape_uri("/" .. token))
-    end
+  token = tostring(ngx.req.get_headers()["Authorization"])
+  ngx.log(ngx.WARN, token)
 
+  ngx.req.set_header("Content-Type", "application/json")
+  ngx.req.set_uri("/")
+  url = "http://192.168.50.172:3315/v1/usr/access/" .. token
+  ngx.escape_uri(token)
+  ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+  --ngx.req.set_uri_args("/" .. token)
+  --ngx.log(ngx.WARN, url)
 end
 
 return CtkHandler
