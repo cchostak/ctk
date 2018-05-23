@@ -40,6 +40,8 @@ function CtkHandler:access(conf)
   CtkHandler.super.access(self)
   ngx.log(ngx.WARN, "--- ctk --- STARTED THE ACCESS PROCESS")
 
+  retrieve_token(ngx.req, conf)
+  ngx.log(ngx.WARN, ngx.req)
   local function retrieve_token(request, conf)
     ngx.log(ngx.WARN, "--- ctk --- RUNNING RETRIEVE TOKEN")
       local uri_parameters = request.get_uri_args()
