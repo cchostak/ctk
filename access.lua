@@ -7,6 +7,10 @@ local multipart = require "multipart"
 local cjson = require "cjson"
 local url = require "socket.url"
 local basic_serializer = require "kong.plugins.log-serializers.basic"
+local Router = require "kong.core.router"
+local reports = require "kong.core.reports"
+local balancer = require "kong.core.balancer"
+local certificate = require "kong.core.certificate"
 local string_format  = string.format
 local ngx_set_header = ngx.req.set_header
 local get_method     = ngx.req.get_method
@@ -90,8 +94,8 @@ local function retrieve_token(request, conf)
     file = io.open("/usr/local/kong/logs/ctk.lua", "a+")
     io.input(file)
     file:write("--- FUNCTION APPEND_URL ---")
-    local uri = ngx.get_uri_args
-    ngx.req.set_uri(ngx.unescape_uri("/" .. token))
+    -- local uri = ngx.get_uri_args
+    ngx.var.upstream_uri(ngx.var.unescape_uri("/" .. token))
   end
 
   return _M
