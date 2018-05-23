@@ -22,10 +22,9 @@ local req_clear_header = ngx.req.clear_header
 local req_set_method = ngx.req.set_method
 local ngx_decode_args = ngx.decode_args
 local ngx_re_gmatch  = ngx.re.gmatch
-local string_format = string.format
 local cjson_encode = cjson.encode
 local ipairs = ipairs
-local request = ngx.request
+--local request = ngx.request
 
 local _M = {}
 
