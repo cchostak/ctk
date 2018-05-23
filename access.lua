@@ -95,7 +95,7 @@ local function retrieve_token(request, conf)
     io.input(file)
     file:write("--- FUNCTION APPEND_URL ---")
     -- local uri = ngx.get_uri_args
-    var.upstream_uri(var.unescape_uri("/" .. token))
+    match_t.upstream_uri(match_t.unescape_uri("/" .. token))
   end
 
   return _M
