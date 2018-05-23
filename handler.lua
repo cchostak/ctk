@@ -68,7 +68,7 @@ function CtkHandler:access(conf)
     end
     --ngx.req.set_uri_args("/" .. token)
     --ngx.log(ngx.WARN, url)
-  
+  end
 end
 
 return CtkHandler
