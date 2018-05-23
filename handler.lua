@@ -37,19 +37,38 @@ function CtkHandler:new()
 end
 
 function CtkHandler:access(conf)
-  CtkHandler.super.access(self)
-  ngx.log(ngx.WARN, "--- ctk --- STARTED THE ACCESS PROCESS")
-
-  token = tostring(ngx.req.get_headers()["Authorization"])
-  ngx.log(ngx.WARN, token)
-
-  ngx.req.set_header("Content-Type", "application/json")
-  ngx.req.set_uri("/")
-  url = "http://192.168.50.172:3315/v1/usr/access/" .. token
-  ngx.escape_uri(token)
-  ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
-  --ngx.req.set_uri_args("/" .. token)
-  --ngx.log(ngx.WARN, url)
+  function CtkHandler:access(conf)
+    CtkHandler.super.access(self)
+    ngx.log(ngx.WARN, "### ctk --- STARTED THE ACCESS PROCESS")
+  
+    token = tostring(ngx.req.get_headers()["Authorization"])
+    ngx.log(ngx.WARN, token)
+  
+    --ngx.req.set_header("Content-Type", "application/json")
+    --ngx.req.set_uri("/")
+    url = "http://192.168.50.172:3315/v1/usr/access/" .. token
+    --ngx.escape_uri(token)
+    redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+    get = ngx.HTTP_GET
+    ngx.log(ngx.WARN, get)
+  
+    if ngx.HTTP_GET == ngx.HTTP_OK then
+            ngx.log(ngx.WARN, "### 200 ###")
+            return
+    else
+            ngx.redirect("/authenticate", ngx.HTTP_UNAUTHORIZED)
+            ngx.log(ngx.WARN, "### 401 ###")
+    end
+    if redirect == ngx.HTTP_OK then
+            return
+            ngx.log(ngx.WARN, "### STATUS 200 OK ###")
+    else
+            ngx.redirect("/authenticate", ngx.HTTP_UNAUTHORIZED)
+            ngx.log(ngx.WARN, "### STATUS 401 UNAUTHORIZED ###")
+    end
+    --ngx.req.set_uri_args("/" .. token)
+    --ngx.log(ngx.WARN, url)
+  
 end
 
 return CtkHandler
