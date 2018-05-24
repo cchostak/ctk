@@ -36,34 +36,37 @@ function CtkHandler:new()
   ngx.log(ngx.WARN, "--- ctk --- INSTACIATED ITSELF")
 end
 
+
+
 function CtkHandler:access(conf)
         CtkHandler.super.access(self)
         local forbidden = 401
         ngx.log(ngx.WARN, "--- ctk --- STARTED THE ACCESS PROCESS")
-    
+
         token = ngx.req.get_headers()["Authorization"]
         if token == nil then
-                ngx.log(ngx.WARN, "--- FORBIDDEN ---")
-                return ngx.redirect(forbidden)
+                ngx.log(ngx.CRIT, "--- FORBIDDEN ---")
+                return responses.send_HTTP_FORBIDDEN("You cannot consume this service")
         else
                 ngx.log(ngx.WARN, token)
+
                 ngx.req.set_header("Content-Type", "application/json")
-                -- uri = "access/" .. token
-        
-                ngx.var.upstream_uri = ngx.var.request_uri .. "/" .. token
-        
+                uri = "authenticate/" .. token
+
+                ngx.var.upstream_uri = "/authenticate" .. "/" .. token
+
                 -- DEPRECATED IN KONG 0.13 ngx.req.set_uri(uri)
                 -- THE WAY AROUNG IS TO RETRIEVE A NGINX VARIABLE, SETTING IT TO A VALUE
                 -- ngx.var.request_uri = tostring(uri)
                 -- ngx.var.upstream_uri = uri
-                -- newURIArgs = ngx.req.set_uri_args(token)
-        
-                -- url = "http://192.168.50.172:3315/v1/usr/access/" .. token
+                ngx.req.set_uri_args(uri)
+
+                url = "http://192.168.50.172:3315/v1/usr/access/" .. token
                 ngx.log(ngx.WARN, tostring(ngx.var.upstream_uri))
-        
                 --ngx.escape_uri(token)
-                --redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
-        
+                redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+                ngx.log(ngx.WARN, "--- EXECUTANDO APÓS REDIRECT ---")
+
         --    if ngx.HTTP_GET == ngx.HTTP_OK then
         --            ngx.log(ngx.WARN, "### 200 ###")
         --            return
@@ -75,6 +78,8 @@ function CtkHandler:access(conf)
                 --ngx.log(ngx.WARN, url)
         end
      end
+
+
     
 
 return CtkHandler
