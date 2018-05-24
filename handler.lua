@@ -50,51 +50,28 @@ function CtkHandler:access(conf)
                 return responses.send_HTTP_FORBIDDEN("You cannot consume this service")
         else
                 ngx.log(ngx.WARN, token)
-                                -- ngx.req.set_header("Content-Type", "application/json")
-                                -- uri = "/" .. token
                 -- SET THE UPSTREAM URI TO ANOTHER SERVICE
                 ngx.var.upstream_uri = "http://localhost:8000/authenticate/" .. token
-                                -- ngx.var.request_uri = tostring(uri) NOT CHANGEABLE
-                                -- ngx.req.set_uri_args(uri) CHANGES NOTHING
-                                -- url = "http://192.168.50.172:3315/v1/usr/access/" .. token
                 -- ASSIGN THE NEW UPSTREAM URI TO ANOTHER VARIABLE
                 url = ngx.var.upstream_uri
                 ngx.log(ngx.WARN, tostring(ngx.var.upstream_uri))
-                                --ngx.escape_uri(token)
-                                --
-                                -- redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
-                -- TRY TO SEND IN A MYRIAD OF WAYS THE REQUEST TO ANOTHER SERVICE
-                res1, res2, res3 = ngx.location.capture_multi{
-                { "/authenticate", { method = ngx.HTTP_POST, body = token} },
-                { "/access", { method = ngx.HTTP_POST, uri = token} },
-                { ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)}
-                }
-                        if res1.status == ngx.HTTP_OK then
-                                ngx.log(ngx.CRIT, "--- AUTHENTICATE COM BODY = TOKEN FUNCIONOU  ---")
-                                return responses.send_HTTP_OK()
-                        else
-                                ngx.log(ngx.CRIT, "--- AUTHENTICATE COM BODY NÃO FUNCIONOU ---")
-                                return responses.send_HTTP_BAD_REQUEST("Something went wrong!")
-                        end
-                        if res2.status == ngx.HTTP_OK then
-                                ngx.log(ngx.CRIT, "--- ACCESS COM URI = TOKEN FUNCIONOU  ---")
-                                return responses.send_HTTP_OK()
-                        else
-                                ngx.log(ngx.CRIT, "--- ACCESS COM URI NÃO FUNCIONOU ----")
-                                return responses.send_HTTP_BAD_REQUEST("Something went wrong!")
-                        end
-                        if res3.status == ngx.HTTP_OK then
-                                ngx.log(ngx.CRIT, "--- REDIRECT COM RETORNO FUNCIONOU  ---")
-                                return responses.send_HTTP_OK()
-                        else
-                                ngx.log(ngx.CRIT, "--- REDIRECT COM RETORNO NÃO FUNCIONOU ---")
-                                return responses.send_HTTP_BAD_REQUEST("Something went wrong!")
-                        end
-                ngx.log(ngx.WARN, tostring(res1.status))
-                ngx.log(ngx.WARN, tostring(res2.status))
-                ngx.log(ngx.WARN, tostring(res3.status))
-
+                redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+                req_set_uri_args(token)
         end
      end
+
+function CtkHandler:header_filter(conf)
+        CtkHandler.super.header_filter(self)
+        ngx.log(ngx.WARN, "--- INICIO DO HEADER FILTER ---")
+        status = ngx.status
+        local h = ngx.resp.get_headers()
+        for k, v in pairs(h) do
+        ngx.log(ngx.WARN, tostring(k))
+        ngx.log(ngx.WARN, tostring(v))
+        end
+        ngx.log(ngx.WARN, tostring(status))
+end
+return CtkHandler
+
 
 return CtkHandler
