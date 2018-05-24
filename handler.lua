@@ -37,38 +37,44 @@ function CtkHandler:new()
 end
 
 function CtkHandler:access(conf)
-  function CtkHandler:access(conf)
-    CtkHandler.super.access(self)
-    ngx.log(ngx.WARN, "### ctk --- STARTED THE ACCESS PROCESS")
-  
-    token = tostring(ngx.req.get_headers()["Authorization"])
-    ngx.log(ngx.WARN, token)
-  
-    --ngx.req.set_header("Content-Type", "application/json")
-    --ngx.req.set_uri("/")
-    url = "http://192.168.50.172:3315/v1/usr/access/" .. token
-    --ngx.escape_uri(token)
-    redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
-    get = ngx.HTTP_GET
-    ngx.log(ngx.WARN, get)
-  
-    if ngx.HTTP_GET == ngx.HTTP_OK then
-            ngx.log(ngx.WARN, "### 200 ###")
-            return
-    else
-            ngx.redirect("/authenticate", ngx.HTTP_UNAUTHORIZED)
-            ngx.log(ngx.WARN, "### 401 ###")
-    end
-    if redirect == ngx.HTTP_OK then
-            return
-            ngx.log(ngx.WARN, "### STATUS 200 OK ###")
-    else
-            ngx.redirect("/authenticate", ngx.HTTP_UNAUTHORIZED)
-            ngx.log(ngx.WARN, "### STATUS 401 UNAUTHORIZED ###")
-    end
-    --ngx.req.set_uri_args("/" .. token)
-    --ngx.log(ngx.WARN, url)
-  end
-end
+        CtkHandler.super.access(self)
+        local forbidden = 401
+        ngx.log(ngx.WARN, "--- ctk --- STARTED THE ACCESS PROCESS")
+    
+        token = ngx.req.get_headers()["Authorization"]
+        if token == nil then
+                ngx.log(ngx.WARN, "--- FORBIDDEN ---")
+                return ngx.redirect(forbidden)
+        else
+                ngx.log(ngx.WARN, token)
+                ngx.req.set_header("Content-Type", "application/json")
+                -- uri = "access/" .. token
+        
+                ngx.var.upstream_uri = ngx.var.request_uri .. "/" .. token
+        
+                -- DEPRECATED IN KONG 0.13 ngx.req.set_uri(uri)
+                -- THE WAY AROUNG IS TO RETRIEVE A NGINX VARIABLE, SETTING IT TO A VALUE
+                -- ngx.var.request_uri = tostring(uri)
+                -- ngx.var.upstream_uri = uri
+                -- newURIArgs = ngx.req.set_uri_args(token)
+        
+                -- url = "http://192.168.50.172:3315/v1/usr/access/" .. token
+                ngx.log(ngx.WARN, tostring(ngx.var.upstream_uri))
+        
+                --ngx.escape_uri(token)
+                --redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+        
+        --    if ngx.HTTP_GET == ngx.HTTP_OK then
+        --            ngx.log(ngx.WARN, "### 200 ###")
+        --            return
+        --    else
+        --            ngx.redirect("/authenticate", ngx.HTTP_MOVED_PERMANENTLY)
+        --            ngx.log(ngx.WARN, "### 401 ###")
+        --    end
+                --ngx.req.set_uri_args("/" .. token)
+                --ngx.log(ngx.WARN, url)
+        end
+     end
+    
 
 return CtkHandler
