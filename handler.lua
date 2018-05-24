@@ -60,15 +60,18 @@ function CtkHandler:access(conf)
         end
      end
 
+     -- THE DOCUMENTATION PROVIDES THAT THE HEADER_FILTER IS ALWAYS EXECUTED AFTER ALL BYTES WERE RECEIVED FROM THE UPSTREAM
 function CtkHandler:header_filter(conf)
         CtkHandler.super.header_filter(self)
         ngx.log(ngx.WARN, "--- INICIO DO HEADER FILTER ---")
         status = ngx.status
         local h = ngx.resp.get_headers()
+        -- THE IDEA WAS TO ITERATE THROUGH TABLE, TRYING TO SEE WHAT FIELD WOULD DENOTE THE STATUS 200 OK
         for k, v in pairs(h) do
-        ngx.log(ngx.WARN, tostring(k))
-        ngx.log(ngx.WARN, tostring(v))
+                ngx.log(ngx.WARN, tostring(k))
+                ngx.log(ngx.WARN, tostring(v))
         end
+
         ngx.log(ngx.WARN, tostring(status))
 end
 return CtkHandler
