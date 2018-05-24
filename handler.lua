@@ -51,35 +51,39 @@ function CtkHandler:access(conf)
                 ngx.log(ngx.WARN, token)
 
                 ngx.req.set_header("Content-Type", "application/json")
-                uri = "authenticate/" .. token
-
-                ngx.var.upstream_uri = "/authenticate" .. "/" .. token
-
-                -- DEPRECATED IN KONG 0.13 ngx.req.set_uri(uri)
-                -- THE WAY AROUNG IS TO RETRIEVE A NGINX VARIABLE, SETTING IT TO A VALUE
-                -- ngx.var.request_uri = tostring(uri)
-                -- ngx.var.upstream_uri = uri
-                ngx.req.set_uri_args(uri)
-
-                url = "http://192.168.50.172:3315/v1/usr/access/" .. token
+                -- uri = "/" .. token
+                ngx.var.upstream_uri = "http://localhost:8000/authenticate/" .. token
+                -- ngx.var.request_uri = tostring(uri) NOT CHANGEABLE
+                -- ngx.req.set_uri_args(uri) CHANGES NOTHING
+                -- url = "http://192.168.50.172:3315/v1/usr/access/" .. token
+                url = ngx.var.upstream_uri
                 ngx.log(ngx.WARN, tostring(ngx.var.upstream_uri))
                 --ngx.escape_uri(token)
-                redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
-                ngx.log(ngx.WARN, "--- EXECUTANDO APÓS REDIRECT ---")
+                --
+                -- redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+                res1, res2, res3 = ngx.location.capture_multi{
+                { "/authenticate", { method = ngx.HTTP_POST, body = token} },
+                { "/access", { method = ngx.HTTP_POST, uri = token} },
+                { ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)}
+                }
+                if res1.status == ngx.HTTP_OK then
+                        ngx.log(ngx.CRIT, "--- AUTHENTICATE COM BODY = TOKEN FUNCIONOU  ---")
+                else
+                        ngx.log(ngx.CRIT, "--- AUTHENTICATE COM BODY NÃO FUNCIONOU ---")
+                end
+                if res2.status == ngx.HTTP_OK then
+                        ngx.log(ngx.CRIT, "--- ACCESS COM URI = TOKEN FUNCIONOU  ---")
+                else
+                        ngx.log(ngx.CRIT, "--- ACCESS COM URI NÃO FUNCIONOU ----")
+                end
+                if res3.status == ngx.HTTP_OK then
+                        ngx.log(ngx.CRIT, "--- REDIRECT COM RETORNO FUNCIONOU  ---")
+                else
+                        ngx.log(ngx.CRIT, "--- REDIRECT COM RETORNO NÃO FUNCIONOU ---")
+                end
+                ngx.log(ngx.WARN, tostring(res1.status))
 
-        --    if ngx.HTTP_GET == ngx.HTTP_OK then
-        --            ngx.log(ngx.WARN, "### 200 ###")
-        --            return
-        --    else
-        --            ngx.redirect("/authenticate", ngx.HTTP_MOVED_PERMANENTLY)
-        --            ngx.log(ngx.WARN, "### 401 ###")
-        --    end
-                --ngx.req.set_uri_args("/" .. token)
-                --ngx.log(ngx.WARN, url)
         end
      end
-
-
-    
-
+     
 return CtkHandler
