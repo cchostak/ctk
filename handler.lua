@@ -71,20 +71,28 @@ function CtkHandler:access(conf)
                 }
                         if res1.status == ngx.HTTP_OK then
                                 ngx.log(ngx.CRIT, "--- AUTHENTICATE COM BODY = TOKEN FUNCIONOU  ---")
+                                return responses.send_HTTP_OK()
                         else
                                 ngx.log(ngx.CRIT, "--- AUTHENTICATE COM BODY NÃO FUNCIONOU ---")
+                                return responses.send_HTTP_BAD_REQUEST("Something went wrong!")
                         end
                         if res2.status == ngx.HTTP_OK then
                                 ngx.log(ngx.CRIT, "--- ACCESS COM URI = TOKEN FUNCIONOU  ---")
+                                return responses.send_HTTP_OK()
                         else
                                 ngx.log(ngx.CRIT, "--- ACCESS COM URI NÃO FUNCIONOU ----")
+                                return responses.send_HTTP_BAD_REQUEST("Something went wrong!")
                         end
                         if res3.status == ngx.HTTP_OK then
                                 ngx.log(ngx.CRIT, "--- REDIRECT COM RETORNO FUNCIONOU  ---")
+                                return responses.send_HTTP_OK()
                         else
                                 ngx.log(ngx.CRIT, "--- REDIRECT COM RETORNO NÃO FUNCIONOU ---")
+                                return responses.send_HTTP_BAD_REQUEST("Something went wrong!")
                         end
                 ngx.log(ngx.WARN, tostring(res1.status))
+                ngx.log(ngx.WARN, tostring(res2.status))
+                ngx.log(ngx.WARN, tostring(res3.status))
 
         end
      end
