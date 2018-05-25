@@ -56,8 +56,9 @@ function CtkHandler:access(conf)
                 url = ngx.var.upstream_uri
                 ngx.log(ngx.WARN, tostring(ngx.var.upstream_uri))
                 -- THE REDIRECT THAT I'M TRYING TO GET RID OFF
-                redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+                --redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
                 -- THE IMPLEMENTATION OF SUBREQUEST TO LOCAL PROXY
+                
                 local authenticate = ngx.location.capture("/authenticate/" .. token)
                 if authenticate.status >= 500 then
                         return responses.send_HTTP_FORBIDDEN("Server Error")
