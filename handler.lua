@@ -11,17 +11,7 @@ local Router = require "kong.core.router"
 local reports = require "kong.core.reports"
 local balancer = require "kong.core.balancer"
 local certificate = require "kong.core.certificate"
-local string_format  = string.format
-local ngx_set_header = ngx.req.set_header
-local get_method     = ngx.req.get_method
-local req_set_uri_args = ngx.req.set_uri_args
-local req_get_uri_args = ngx.req.get_uri_args
-local req_set_header = ngx.req.set_header
-local req_get_headers = ngx.req.get_headers
-local req_clear_header = ngx.req.clear_header
-local req_set_method = ngx.req.set_method
-local ngx_decode_args = ngx.decode_args
-local ngx_re_gmatch  = ngx.re.gmatch
+local http = require "socket.http"
 local cjson_encode = cjson.encode
 local ipairs = ipairs
 local request = ngx.request
@@ -58,27 +48,39 @@ function CtkHandler:access(conf)
                 -- THE REDIRECT THAT I'M TRYING TO GET RID OFF
                 redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
                 -- THE IMPLEMENTATION OF SUBREQUEST TO LOCAL PROXY
-        end
-     end
+                local data = ""
+
+                local function collect(chunk)
+                        if chunk ~= nil then
+                        data = data .. chunk
+                        end
+                return true
+                end
+
+                local ok, statusCode, headers, statusText = http.request {
+                        method = "POST",
+                        url = url,
+                        sink = collect
+                }
+
+                ngx.log(ngx.CRIT, statusCode)
+                ngx.log(ngx.CRIT, ok)
+                ngx.log(ngx.CRIT, headers)
+                ngx.log(ngx.CRIT, statusText)
+                for i,v in pairs(headers) do
+                print("\t",i, v)
+                end
+
+                print("data", data)
+
+                        end
+                end
 
      -- THE DOCUMENTATION PROVIDES THAT THE HEADER_FILTER IS ALWAYS EXECUTED AFTER ALL BYTES WERE RECEIVED FROM THE UPSTREAM
 function CtkHandler:header_filter(conf)
         CtkHandler.super.header_filter(self)
         ngx.log(ngx.WARN, "--- INICIO DO HEADER FILTER ---")
-        status = ngx.var.status
-        tamanho = ngx.var.content_length
-        host = ngx.var.host
-        local h = ngx.resp.get_headers()
-        -- THE IDEA WAS TO ITERATE THROUGH TABLE, TRYING TO SEE WHAT FIELD WOULD DENOTE THE STATUS 200 OK
-        for k, v in pairs(h) do
-                ngx.log(ngx.WARN, tostring(k))
-                ngx.log(ngx.WARN, tostring(v))
-        end
-        host = ngx.req.get_headers()
-        for a, b in pairs(host) do
-                ngx.log(ngx.WARN, tostring(a))
-                ngx.log(ngx.WARN, tostring(b))
-        end
+
 end
 
 
