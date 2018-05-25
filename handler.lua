@@ -74,7 +74,5 @@ function CtkHandler:header_filter(conf)
 
         ngx.log(ngx.WARN, tostring(status))
 end
-return CtkHandler
-
 
 return CtkHandler
