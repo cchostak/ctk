@@ -39,7 +39,7 @@ function CtkHandler:access(conf)
                 ngx.log(ngx.CRIT, "--- TOKEN ---")
                 ngx.log(ngx.CRIT, token)
                 -- SET THE UPSTREAM URI TO ANOTHER SERVICE
-                ura = "http://192.168.50.172:3315/v1/usr/access/" .. token
+                ura = conf.url .. token
                 -- THE HTTP REQUEST THAT TEST IF JWT IS VALID OR NOT
                 local data = ""
 
