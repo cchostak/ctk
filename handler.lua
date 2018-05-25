@@ -3,18 +3,10 @@ local BasePlugin = require "kong.plugins.base_plugin"
 local responses = require "kong.tools.responses"
 local constants = require "kong.constants"
 local utils = require "kong.tools.utils"
-local multipart = require "multipart"
 local cjson = require "cjson"
 local url = require "socket.url"
-local basic_serializer = require "kong.plugins.log-serializers.basic"
-local Router = require "kong.core.router"
-local reports = require "kong.core.reports"
-local balancer = require "kong.core.balancer"
-local certificate = require "kong.core.certificate"
 local http = require "socket.http"
-local cjson_encode = cjson.encode
 local ipairs = ipairs
-local request = ngx.request
 
 local CtkHandler = BasePlugin:extend()
 CtkHandler.PRIORITY = 3505
@@ -67,10 +59,6 @@ function CtkHandler:access(conf)
                 end
 
         end
-end
-
-function CtkHandler:header_filter(conf)
-        CtkHandler.super.header_filter(self)
 end
 
 return CtkHandler
