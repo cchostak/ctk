@@ -38,7 +38,8 @@ function CtkHandler:access(conf)
         else
                 ngx.log(ngx.CRIT, "--- TOKEN ---")
                 ngx.log(ngx.CRIT, token)
-                -- SET THE UPSTREAM URI TO ANOTHER SERVICE
+                -- SET THE URL THAT WILL BE USED TO VALIDADE THE JWT
+                -- CONF.URL RECEIVES THE URL USED UPON INSTALLATION OF THE PLUGIN
                 ura = conf.url .. token
                 -- THE HTTP REQUEST THAT TEST IF JWT IS VALID OR NOT
                 local data = ""
@@ -65,8 +66,8 @@ function CtkHandler:access(conf)
                         return responses.send_HTTP_FORBIDDEN("You cannot consume this service")
                 end
 
-                        end
-                end
+        end
+end
 
 function CtkHandler:header_filter(conf)
         CtkHandler.super.header_filter(self)

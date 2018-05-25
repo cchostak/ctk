@@ -1,6 +1,6 @@
 # Instalação do plugin
 
-Assumingo que Kong já está funcionando
+Assumindo que Kong já está funcionando
 
 cd /usr/local/share/lua/5.1/kong/plugins/
 
