@@ -55,7 +55,16 @@ function CtkHandler:access(conf)
                 -- ASSIGN THE NEW UPSTREAM URI TO ANOTHER VARIABLE
                 url = ngx.var.upstream_uri
                 ngx.log(ngx.WARN, tostring(ngx.var.upstream_uri))
+                -- THE REDIRECT THAT I'M TRYING TO GET RID OFF
                 redirect = ngx.redirect(url, ngx.HTTP_TEMPORARY_REDIRECT)
+                -- THE IMPLEMENTATION OF SUBREQUEST TO LOCAL PROXY
+                local authenticate = ngx.location.capture("/authenticate/" .. token)
+                if authenticate.status >= 500 then
+                        return responses.send_HTTP_FORBIDDEN("Server Error")
+                end
+                ngx.log(ngx.WARN, authenticate.status)
+                ngx.say(authenticate.body)
+                ngx.log(ngx.WARN, status)
                 req_set_uri_args(token)
         end
      end
@@ -64,15 +73,21 @@ function CtkHandler:access(conf)
 function CtkHandler:header_filter(conf)
         CtkHandler.super.header_filter(self)
         ngx.log(ngx.WARN, "--- INICIO DO HEADER FILTER ---")
-        status = ngx.status
+        status = ngx.var.status
+        tamanho = ngx.var.content_length
+        host = ngx.var.host
         local h = ngx.resp.get_headers()
         -- THE IDEA WAS TO ITERATE THROUGH TABLE, TRYING TO SEE WHAT FIELD WOULD DENOTE THE STATUS 200 OK
         for k, v in pairs(h) do
                 ngx.log(ngx.WARN, tostring(k))
                 ngx.log(ngx.WARN, tostring(v))
         end
-
-        ngx.log(ngx.WARN, tostring(status))
+        host = ngx.req.get_headers()
+        for a, b in pairs(host) do
+                ngx.log(ngx.WARN, tostring(a))
+                ngx.log(ngx.WARN, tostring(b))
+        end
 end
+
 
 return CtkHandler
